@@ -1,19 +1,47 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Login from "./Login";
+import axios from 'axios';
+import toast from "react-hot-toast";
 
 function Signup() {
+
+  const loaction =useLocation();
+  const navigate = useNavigate();
+  const from = location.state?.from?.pathname || "/"
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("Signup Data:", data);
-    alert("Signup Successful (Frontend only)");
-    document.getElementById("signup_modal").close();
+  const onSubmit = async (data) => {
+    // console.log("Signup Data:", data);
+    // alert("Signup Successful (Frontend only)");
+    // document.getElementById("signup_modal").close();
+
+    const userInfo = {
+      name: data.name,
+      email: data.email,
+      password: data.password
+    }
+
+    await axios.post('http://localhost:3000/user/signup', userInfo)
+      .then((res) => {
+        console.log(res.data)
+        if (res.data) {
+          toast.success("Signup successfully")
+           navigate(from, { replace: true });
+        }
+        localStorage.setItem("Users", JSON.stringify(res.data));
+      })
+      .catch((err) => {
+        console.log(err)
+        toast.error(err.response.data.message)
+
+      })
   };
 
   return (
@@ -41,12 +69,12 @@ function Signup() {
               <br />
               <input
                 type="text"
-                placeholder="Enter your fullname"
+                placeholder="Enter your name"
                 className="w-80 px-3 py-1 border rounded-md outline-none"
-                {...register("fullname", { required: true })}
+                {...register("name", { required: true })}
               />
               <br />
-              {errors.fullname && (
+              {errors.name && (
                 <span className="text-sm text-red-500">
                   Name is required
                 </span>
